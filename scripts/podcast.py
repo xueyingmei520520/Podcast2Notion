@@ -284,12 +284,18 @@ def insert_episode(episodes, d):
             "database_id": notion_helper.episode_database_id,
             "type": "database_id",
         }
-        page_id = check_eposide(eid)
-        if page_id:
-            notion_helper.update_page(page_id=page_id, properties=properties)
-        else:
-            notion_helper.create_page(
-                parent=parent, properties=properties, icon=get_icon(d.get(pid)[1])
+
+        # 修复未正确捕获的异常
+        try:
+            if page_id:
+                notion_helper.update_page(page_id=page_id, properties=properties)
+            else:
+                notion_helper.create_page(
+                    parent=parent, properties=properties, icon=get_icon(d.get(pid)[1])
+                )
+        except Exception as e:
+            print(
+                f"同步 = {result.get('title')} 失败，原因：{e}，当前是第{index+1}个"
             )
 
 
