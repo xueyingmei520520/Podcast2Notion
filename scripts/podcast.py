@@ -300,6 +300,7 @@ def insert_episode(episodes, d):
 
         # 修复未正确捕获的异常
         try:
+            page_id = check_podcast(pid)
             if page_id:
                 notion_helper.update_page(page_id=page_id, properties=properties)
             else:
