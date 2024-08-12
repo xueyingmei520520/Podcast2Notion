@@ -308,7 +308,7 @@ def insert_episode(episodes, d):
                 )
         except Exception as e:
             print(
-                f"同步 = {result.get('title')} 失败，原因：{e}，当前是第{index+1}个"
+                f"🐛 同步失败 = {result.get('title')}，🛠️ 失败原因：{e}"
             )
 
 
