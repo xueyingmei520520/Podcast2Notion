@@ -276,7 +276,20 @@ def insert_episode(episodes, d):
         elif result.get("isPlayed"):
             status = "在听"
         episode["状态"] = status
-        properties = utils.get_properties(episode, book_properties_type_dict)
+
+        # 加强异常捕获
+        try:
+            properties = utils.get_properties(episode, book_properties_type_dict)
+        except KeyError as e:
+            print(f"获取属性失败，原因：缺少关键字 {e}，当前是第{index+1}个")
+            continue
+        except ValueError as e:
+            print(f"获取属性失败，原因：值错误 {e}，当前是第{index+1}个")
+            continue
+        except Exception as e:
+            print(f"获取属性失败，原因：{e}，当前是第{index+1}个")
+            continue
+        
         print(
             f"正在同步 = {result.get('title')}，共{len(episodes)}个Episode，当前是第{index+1}个"
         )
