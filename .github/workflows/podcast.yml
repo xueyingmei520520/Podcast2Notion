@@ -10,7 +10,7 @@ on:
       - "scripts/**"
       - "requirements.txt"
   schedule:
-    # Daily at 00:17 UTC (08:17 Asia/Shanghai). Avoid the top-of-hour peak.
+    # Daily at 00:17 UTC (08:17 Asia/Shanghai), outside the top-of-hour peak.
     - cron: "17 0 * * *"
 
 concurrency:
