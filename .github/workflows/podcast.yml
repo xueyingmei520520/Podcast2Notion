@@ -2,31 +2,53 @@ name: podcast sync
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/podcast.yml"
+      - "scripts/**"
+      - "requirements.txt"
   schedule:
+    # Daily at 00:00 UTC (08:00 Asia/Shanghai / Singapore)
     - cron: "0 0 * * *"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
   sync:
     name: Sync
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
-        NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-        NOTION_PAGE: ${{ secrets.NOTION_PAGE }}
-        REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+      NOTION_PAGE: ${{ secrets.NOTION_PAGE }}
+      REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.11"
+          cache: pip
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: podcast sync
+          python -m pip install -r requirements.txt
+
+      - name: Check required secrets
         run: |
-          python -u scripts/podcast.py
+          python -c 'import os,sys; required=("NOTION_TOKEN","NOTION_PAGE","REFRESH_TOKEN"); missing=[k for k in required if not os.getenv(k)]; print("Required secrets configured" if not missing else "Missing secrets: "+", ".join(missing)); sys.exit(bool(missing))'
+
+      - name: Check Python syntax
+        run: python -m compileall -q scripts
+
+      - name: Podcast sync
+        run: python -u scripts/podcast.py
