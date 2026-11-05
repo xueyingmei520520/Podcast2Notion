@@ -32,8 +32,11 @@ headers = {
 def refresh_token():
     url = "https://api.xiaoyuzhoufm.com/app_auth_tokens.refresh"
     resp = requests.post(url, headers=headers)
+    resp.raise_for_status()
     if resp.ok:
         token = resp.json().get("x-jike-access-token")
+        if not token:
+            raise RuntimeError("Token refresh returned no access token; check REFRESH_TOKEN")
         headers["x-jike-access-token"] = token
 
 
@@ -269,7 +272,7 @@ def insert_episode(episodes, d):
         episode["时长"] = result.get("duration")
         episode["喜欢"] = result.get("isPicked")
         episode["Podcast"] = [d.get(pid)[0]]
-        episode["链接"] = f"hhttps://www.xiaoyuzhoufm.com/episode/{result.get('eid')}"
+        episode["链接"] = f"https://www.xiaoyuzhoufm.com/episode/{result.get('eid')}"
         status = "未听"
         if result.get("isFinished"):
             status = "听过"
@@ -298,9 +301,9 @@ def insert_episode(episodes, d):
             "type": "database_id",
         }
 
-        # 修复未正确捕获的异常
+        # Upsert by episode ID, not podcast ID.
         try:
-            page_id = check_podcast(pid)
+            page_id = check_eposide(eid)
             if page_id:
                 notion_helper.update_page(page_id=page_id, properties=properties)
             else:
@@ -308,15 +311,18 @@ def insert_episode(episodes, d):
                     parent=parent, properties=properties, icon=get_icon(d.get(pid)[1])
                 )
         except Exception as e:
-            print(
-                f"🐛 同步失败 = {result.get('title')}，🛠️ 失败原因：{e}"
-            )
+            print(f"Episode sync failed: {result.get('title')}: {e}")
+            raise
 
 
 if __name__ == "__main__":
+    required = ("NOTION_TOKEN", "NOTION_PAGE", "REFRESH_TOKEN")
+    missing = [key for key in required if not os.getenv(key)]
+    if missing:
+        raise RuntimeError(f"Missing required secrets: {', '.join(missing)}")
     notion_helper = NotionHelper()
     refresh_token()
     d = insert_podcast()
     episodes = get_history()
     insert_episode(episodes, d)
-    delete()
+    # Do not delete unplayed episodes during routine sync.
