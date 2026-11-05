@@ -1,21 +1,19 @@
-name: podcast sync
+name: podcast sync v2
 
 on:
-  # Keep manual dispatch available for one-click recovery and validation.
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/podcast.yml"
+      - ".github/workflows/podcast-sync-v2.yml"
       - "scripts/**"
       - "requirements.txt"
   schedule:
-    # Daily at 00:17 UTC (08:17 Asia/Shanghai). Avoid the top-of-hour peak.
+    # Daily at 00:17 UTC (08:17 Asia/Shanghai), outside the top-of-hour peak.
     - cron: "17 0 * * *"
 
 concurrency:
-  # Fresh key bypasses any stale lock left by the previously disabled workflow.
-  group: podcast-sync-v2-${{ github.ref }}
+  group: podcast-sync-v3-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
