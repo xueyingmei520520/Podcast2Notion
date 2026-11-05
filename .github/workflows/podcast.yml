@@ -1,6 +1,7 @@
 name: podcast sync
 
 on:
+  # Keep manual dispatch available for one-click recovery and validation.
   workflow_dispatch:
   push:
     branches: [main]
