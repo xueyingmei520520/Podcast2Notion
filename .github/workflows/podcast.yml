@@ -14,8 +14,9 @@ on:
     - cron: "17 0 * * *"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  # Fresh key bypasses any stale lock left by the previously disabled workflow.
+  group: podcast-sync-v2-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
